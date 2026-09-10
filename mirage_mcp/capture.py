@@ -27,23 +27,31 @@ def record_event(
     session_id: str,
     tool_name: str,
     probe_id: str | None,
-    request: Any,
     response_text: str,
     verdict_label: str,
     verdict_confidence: float,
+    declared_agent: str | None = None,
+    client_info: dict[str, Any] | None = None,
 ) -> None:
     """Append one capture event as a JSON line. Never raises on a
     classification failure upstream — record what was observed even when
-    the verdict is indeterminate."""
+    the verdict is indeterminate.
+
+    declared_agent is a self-reported, unverified label the caller
+    optionally supplies (real ground truth when honest, noise when not —
+    treat it the same way mirage-crawl treats a claimed crawler identity:
+    a signal to check, never a fact to trust outright).
+    """
     event = {
         "ts": time.time(),
         "session_id": session_id,
         "tool_name": tool_name,
         "probe_id": probe_id,
-        "request": request,
         "response_text": response_text,
         "verdict_label": verdict_label,
         "verdict_confidence": verdict_confidence,
+        "declared_agent": declared_agent,
+        "client_info": client_info,
     }
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
