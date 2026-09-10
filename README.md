@@ -60,6 +60,18 @@ call `get_probe`, respond to the prompt, then call `submit_probe_response`.
 python tests/test_classifier.py
 ```
 
+### Containerized (streamable-http)
+
+```bash
+docker compose up -d --build
+```
+
+Runs the server over `streamable-http` at `127.0.0.1:8765/mcp` — loopback
+only, since there's no reverse proxy/TLS in front of it yet. Captured
+sessions live in the `mcp_data` named volume (`/app/data/sessions.jsonl`
+inside the container), which survives restarts and rebuilds. Runs as a
+non-root user, same pattern as `mirage-crawl` and `mirage-core`.
+
 ## How it works
 
 1. `mirage_mcp/probes.py` — the bank of adversarial test prompts, each

@@ -19,6 +19,7 @@ client's self-reported name/version. Nothing else the caller sends is ever
 logged.
 """
 
+import os
 import random
 
 from mcp.server.mcpserver import Context, MCPServer
@@ -110,7 +111,24 @@ def submit_probe_response(
 
 
 def main() -> None:
-    mcp.run()
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    if transport == "stdio":
+        mcp.run()
+        return
+
+    if transport != "streamable-http":
+        raise ValueError(f"unsupported MCP_TRANSPORT {transport!r}")
+
+    mcp.run(
+        transport="streamable-http",
+        host=os.environ.get("MCP_HOST", "127.0.0.1"),
+        port=int(os.environ.get("MCP_PORT", "8765")),
+        # A probe response is a few sentences at most; there's no legitimate
+        # reason for a submit_probe_response payload to be large. Well below
+        # the SDK's 4MB default so an oversized body gets rejected before it
+        # reaches application code.
+        max_request_body_size=int(os.environ.get("MCP_MAX_REQUEST_BODY_SIZE", "65536")),
+    )
 
 
 if __name__ == "__main__":

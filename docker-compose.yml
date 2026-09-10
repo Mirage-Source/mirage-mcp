@@ -1,0 +1,28 @@
+services:
+  mirage-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MCP_TRANSPORT: streamable-http
+      # 0.0.0.0 inside the container's own network namespace -- the host
+      # port publish below is what actually decides public reachability,
+      # same split mirage-crawl uses for CRAWL_HOST/CRAWL_PORT.
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "8765"
+      MCP_MAX_REQUEST_BODY_SIZE: "65536"
+    volumes:
+      - mcp_data:/app/data
+    ports:
+      # Loopback-only for now: no reverse proxy/TLS in front of this yet, so
+      # it isn't publicly reachable until that's wired up. Deliberately not
+      # "8765:8765" -- don't widen this until TLS termination exists.
+      - "127.0.0.1:8765:8765"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+volumes:
+  mcp_data:
