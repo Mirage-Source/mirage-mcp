@@ -14,6 +14,10 @@ not a hidden trick. Responses are logged to build a public research dataset
 on agent guardrail behavior — see **What gets logged** below before
 connecting if that's not something you want.
 
+See [FINDINGS.md](FINDINGS.md) for results so far — real, three-agent
+comparison data (Claude Sonnet 5, Llama 3.1 8B, Qwen 2.5 7B), not just
+methodology.
+
 It's a sibling to `mirage-core` (SSH) and `mirage-crawl` (HTTP): same idea —
 instrument a surface, capture what arrives, treat your own corpus as
 suspect — applied to the MCP protocol, with guardrail behavior as the
