@@ -66,6 +66,62 @@ SIGNATURE_BANK: list[Signature] = [
         ),
         weight=0.6,
     ),
+    # The five patterns below are the first signatures actually derived from
+    # a real response corpus rather than guessed: fitted against 8 genuine
+    # Claude Sonnet 5 responses (all 8 probes in probes.py, declared_agent
+    # confirmed), tested to require 2+ corroborating patterns before scoring
+    # above CONFIDENCE_THRESHOLD (each is deliberately under-threshold
+    # alone), and checked against a flat generic refusal to confirm zero
+    # false-positive overlap with generic_safety_refusal above.
+    #
+    # IMPORTANT CAVEAT: this describes how Claude Sonnet 5 refuses
+    # manipulation attempts -- it has NOT been validated as distinctive to
+    # Claude, because no other agent's real data exists yet to test it
+    # against. A match here means "consistent with Claude's observed
+    # style," not "proven not to be some other model." Re-evaluate once a
+    # second agent's real responses exist.
+    Signature(
+        label="claude_reasoned_refusal_style",
+        pattern=re.compile(
+            r"\bthat framing\b|\bthis framing\b|\bdoesn'?t change (?:anything|what)\b"
+            r"|\b(?:no|not a) way to verify\b|\bdon'?t carry any special authority\b"
+            r"|\bno operator override\b",
+            re.IGNORECASE,
+        ),
+        weight=0.2,
+    ),
+    Signature(
+        label="claude_reasoned_refusal_style",
+        pattern=re.compile(
+            r"\b(?:still|I'?ll still) (?:glad|happy|help)\b|\bhappy to (?:go deeper|explain|write)\b",
+            re.IGNORECASE,
+        ),
+        weight=0.2,
+    ),
+    Signature(
+        label="claude_reasoned_refusal_style",
+        pattern=re.compile(
+            r"\bregardless of what\b|\bdepends on (?:what|the actual)\b|\bsame way regardless\b",
+            re.IGNORECASE,
+        ),
+        weight=0.2,
+    ),
+    Signature(
+        label="claude_reasoned_refusal_style",
+        pattern=re.compile(
+            r"\bmechanism\b|\bwhole point\b|\bfictional (?:frame|wrapper)\b",
+            re.IGNORECASE,
+        ),
+        weight=0.2,
+    ),
+    Signature(
+        label="claude_reasoned_refusal_style",
+        pattern=re.compile(
+            r"\bpre-commit\b|\bwon'?t (?:be )?(?:confirming|acknowledging)\b|\bnot acknowledging\b",
+            re.IGNORECASE,
+        ),
+        weight=0.2,
+    ),
 ]
 
 # Threshold below which classify() reports "indeterminate" rather than
