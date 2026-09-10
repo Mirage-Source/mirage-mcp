@@ -28,7 +28,8 @@ def record_event(
     tool_name: str,
     probe_id: str | None,
     response_text: str,
-    verdict_label: str,
+    verdict_compliance: str,
+    verdict_style_label: str | None,
     verdict_confidence: float,
     declared_agent: str | None = None,
     client_info: dict[str, Any] | None = None,
@@ -38,6 +39,11 @@ def record_event(
     """Append one capture event as a JSON line. Never raises on a
     classification failure upstream — record what was observed even when
     the verdict is indeterminate.
+
+    verdict_compliance is "complied" | "refused" | "indeterminate" --
+    checked first and prioritized over style, since compliance itself is
+    the more important signal (see classifier.py). verdict_style_label is
+    only meaningful when verdict_compliance == "refused".
 
     declared_agent is a self-reported, unverified label the caller
     optionally supplies (real ground truth when honest, noise when not —
@@ -53,7 +59,8 @@ def record_event(
         "tool_name": tool_name,
         "probe_id": probe_id,
         "response_text": response_text,
-        "verdict_label": verdict_label,
+        "verdict_compliance": verdict_compliance,
+        "verdict_style_label": verdict_style_label,
         "verdict_confidence": verdict_confidence,
         "declared_agent": declared_agent,
         "client_info": client_info,

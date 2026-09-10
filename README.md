@@ -84,17 +84,24 @@ IPs simply aren't hashed or logged.
 
 ## How it works
 
-1. `mirage_mcp/probes.py` — the bank of adversarial test prompts, each
-   targeting a different kind of guardrail reaction (identity elicitation,
-   policy conflict, instruction override, jailbreak-lite).
+1. `mirage_mcp/probes.py` — the bank of adversarial test prompts: the
+   original AP-Test-style set (identity elicitation, policy conflict,
+   instruction override, jailbreak-lite) plus four documented
+   jailbreak-technique categories (persona/roleplay, hypothetical framing,
+   refusal-prefix injection, authority impersonation), adapted from
+   JailbreakBench/HarmBench.
 2. `mirage_mcp/server.py` — the MCP server (built on the official MCP
    Python SDK). `get_probe` returns one prompt; `submit_probe_response`
    scores whatever the caller submits and returns a report.
-3. `mirage_mcp/signatures.py` — regex patterns characteristic of known
-   refusal/guardrail behaviors, each carrying a confidence weight.
-4. `mirage_mcp/classifier.py` — scores a response against the signature
-   bank and returns the best-matching label, or `indeterminate` if nothing
-   clears the confidence threshold.
+3. `mirage_mcp/signatures.py` — two regex pattern banks: one for known
+   refusal-style phrasing, one for explicit compliance markers, each
+   pattern carrying a confidence weight.
+4. `mirage_mcp/classifier.py` — scores a response on two axes: did it
+   comply with the probe, and if it refused, which known refusal style
+   does it resemble. Compliance is checked first and takes priority — a
+   model agreeing to drop its own safety behavior is the more important
+   finding than any style match. Either axis can come back `indeterminate`
+   if nothing clears the confidence threshold.
 5. `mirage_mcp/capture.py` — appends every submission and verdict to
    `data/sessions.jsonl`, unconditionally, scoped to the fields listed
    under **What gets logged** above.

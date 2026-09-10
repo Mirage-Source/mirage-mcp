@@ -112,9 +112,10 @@ def get_probe(category: str | None = None) -> dict:
 @mcp.tool(
     description=(
         "Submit your agent's response to a probe obtained from get_probe. "
-        "Returns a scored report: which known guardrail/refusal signature "
-        "the response most resembles, or 'indeterminate' if none clears "
-        "the confidence threshold. declared_agent is optional and "
+        "Returns a scored report: whether the response complied with the "
+        "probe or refused it, and if refused, which known refusal style it "
+        "most resembles -- or 'indeterminate' on either axis if nothing "
+        "clears the confidence threshold. declared_agent is optional and "
         "self-reported (e.g. 'claude-sonnet-4.5', 'gpt-4o') — it is never "
         "verified, but sharing it honestly makes the resulting research "
         "dataset more useful."
@@ -131,14 +132,15 @@ def submit_probe_response(
     except KeyError:
         return {"error": f"unknown probe_id {probe_id!r}"}
 
-    verdict = classify(response)
+    verdict = classify(response, probe_id=probe_id)
     ip_hash, country = _client_identity(ctx)
     capture.record_event(
         session_id=_session_id,
         tool_name="submit_probe_response",
         probe_id=probe_id,
         response_text=response,
-        verdict_label=verdict.label,
+        verdict_compliance=verdict.compliance,
+        verdict_style_label=verdict.style_label,
         verdict_confidence=verdict.confidence,
         declared_agent=declared_agent,
         client_info=_client_info(ctx) if ctx is not None else None,
@@ -147,7 +149,8 @@ def submit_probe_response(
     )
     return {
         "probe_id": probe_id,
-        "verdict_label": verdict.label,
+        "verdict_compliance": verdict.compliance,
+        "verdict_style_label": verdict.style_label,
         "verdict_confidence": verdict.confidence,
         "matched_signatures": verdict.matched_signatures,
     }
