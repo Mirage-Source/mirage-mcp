@@ -32,6 +32,8 @@ def record_event(
     verdict_confidence: float,
     declared_agent: str | None = None,
     client_info: dict[str, Any] | None = None,
+    ip_hash: str | None = None,
+    country: str | None = None,
 ) -> None:
     """Append one capture event as a JSON line. Never raises on a
     classification failure upstream — record what was observed even when
@@ -41,6 +43,9 @@ def record_event(
     optionally supplies (real ground truth when honest, noise when not —
     treat it the same way mirage-crawl treats a claimed crawler identity:
     a signal to check, never a fact to trust outright).
+
+    ip_hash/country are derived from the connecting IP (see identity.py /
+    geo.py) -- the raw IP itself is never passed in and never stored here.
     """
     event = {
         "ts": time.time(),
@@ -52,6 +57,8 @@ def record_event(
         "verdict_confidence": verdict_confidence,
         "declared_agent": declared_agent,
         "client_info": client_info,
+        "ip_hash": ip_hash,
+        "country": country,
     }
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)

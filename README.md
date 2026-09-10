@@ -35,9 +35,12 @@ it's built as a genuinely useful self-audit tool rather than a disguised one.
   that probe, the classifier's verdict, the optional self-reported
   `declared_agent` label (if you provide one — never verified, same posture
   as `mirage-crawl` treating a claimed crawler identity as a signal to
-  check, not a fact), and your MCP client's self-reported name/version from
-  the connection handshake. Nothing else is ever captured — no other
-  arguments, no other tool output, no unrelated content.
+  check, not a fact), your MCP client's self-reported name/version from the
+  connection handshake, and a salted HMAC-SHA256 hash of your connecting IP
+  plus the country it resolves to — never the IP itself, same anonymization
+  `mirage-core` already uses for its published exports. Nothing else is
+  ever captured — no other arguments, no other tool output, no unrelated
+  content.
 - Every submission is captured, including ones the classifier can't
   confidently label — those are recorded as `indeterminate`, never
   silently dropped.
@@ -63,14 +66,21 @@ python tests/test_classifier.py
 ### Containerized (streamable-http)
 
 ```bash
+cp .env.example .env   # fill in IP_SALT; see the file for how to generate one
 docker compose up -d --build
 ```
 
-Runs the server over `streamable-http` at `127.0.0.1:8765/mcp` — loopback
-only, since there's no reverse proxy/TLS in front of it yet. Captured
-sessions live in the `mcp_data` named volume (`/app/data/sessions.jsonl`
-inside the container), which survives restarts and rebuilds. Runs as a
-non-root user, same pattern as `mirage-crawl` and `mirage-core`.
+Runs the server over `streamable-http` at `127.0.0.1:8765/mcp`, loopback
+only — public reachability comes from a Cloudflare Tunnel in front of it,
+not a published port. Captured sessions live in the `mcp_data` named volume
+(`/app/data/sessions.jsonl` inside the container), which survives restarts
+and rebuilds. Runs as a non-root user, same pattern as `mirage-crawl` and
+`mirage-core`.
+
+Geo lookup expects `mirage-core`'s DB-IP CSVs mounted read-only at
+`/data/geo` (see `docker-compose.yml`'s `GEO_DATA_DIR`, defaults to
+`mirage-core`'s path on the shared deployment box); without `IP_SALT` set,
+IPs simply aren't hashed or logged.
 
 ## How it works
 
@@ -88,6 +98,11 @@ non-root user, same pattern as `mirage-crawl` and `mirage-core`.
 5. `mirage_mcp/capture.py` — appends every submission and verdict to
    `data/sessions.jsonl`, unconditionally, scoped to the fields listed
    under **What gets logged** above.
+6. `mirage_mcp/identity.py` / `mirage_mcp/geo.py` — resolve the connecting
+   IP (from `CF-Connecting-IP`/`X-Forwarded-For`) to a salted hash and a
+   country code before the raw address is discarded. Geo lookup reuses
+   `mirage-core`'s DB-IP Lite CSV snapshots rather than a live API call —
+   see `mirage_mcp/geo.py`'s docstring.
 
 ## Deployment
 
