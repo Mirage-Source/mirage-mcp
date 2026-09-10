@@ -1,0 +1,23 @@
+name: Deploy mirage-mcp
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          # DEPLOY_KEY is restricted server-side to a forced command
+          # (authorized_keys `command="/opt/mirage/mirage-mcp/deploy.sh"`,
+          # no-pty/no-agent-forwarding/no-X11-forwarding/no-user-rc/
+          # no-port-forwarding) -- whatever is sent here is ignored by
+          # sshd and deploy.sh runs instead. Unlike mirage-core's
+          # full-shell DEPLOY_KEY, this key can never run anything else
+          # even if it leaks.
+          script: deploy

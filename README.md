@@ -89,11 +89,24 @@ non-root user, same pattern as `mirage-crawl` and `mirage-core`.
    `data/sessions.jsonl`, unconditionally, scoped to the fields listed
    under **What gets logged** above.
 
+## Deployment
+
+Runs containerized on the same VPS as `mirage-core`
+(`/opt/mirage/mirage-mcp`), bound to `127.0.0.1:8765`. Public exposure goes
+through a Cloudflare Tunnel rather than a directly-exposed port, to avoid
+correlating this box's real IP with the SSH honeypot sharing it.
+
+Redeploy via GitHub Actions (`workflow_dispatch` on `deploy.yml`). The
+deploy key is deliberately more restricted than `mirage-core`'s: it's
+locked server-side to a forced command (`authorized_keys`
+`command="/opt/mirage/mirage-mcp/deploy.sh"`, no pty/agent-forwarding/
+X11-forwarding/user-rc/port-forwarding) that only ever runs `deploy.sh`
+(`git fetch && git reset --hard && docker compose up --build -d`) —
+even a leaked key can't run anything else.
+
 ## Status
 
-Early scaffold, not yet deployed. Standalone — no database, no
-`mirage-fleet` wiring yet. Classification is rule-based only; the signature
-bank needs real observed sessions (ideally with `declared_agent` set) before
-its confidence weights mean anything. Deployment target is a public MCP
-registry listing over streamable-http, once the classifier's been sanity
-checked.
+Deployed on the VPS. Standalone — no database, no `mirage-fleet` wiring.
+Classification is rule-based only; the signature bank needs real observed
+sessions (ideally with `declared_agent` set) before its confidence weights
+mean anything.
