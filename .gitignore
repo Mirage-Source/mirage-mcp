@@ -1,0 +1,22 @@
+# Personal working notes — never pushed to GitHub for this repo
+CLAUDE.md
+DECISIONS.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+
+# Env / secrets
+.env
+*.secret
+
+# OS
+.DS_Store
